@@ -26,7 +26,8 @@ use clap::{App, Arg};
 use flexi_logger::Logger;
 use log::*;
 use serde::Deserialize;
-use std::fs::DirEntry;
+
+mod exp;
 
 fn main() {
     let matches = App::new("BigBang")
@@ -55,7 +56,7 @@ fn main() {
     info!("Starting Big Bang!");
     let config = read_config(bb_dir);
     println!("repeat = {}", config.repeat);
-    find_explosions(bb_dir);
+    exp::find_exploders(bb_dir);
 }
 
 #[derive(Deserialize)]
@@ -79,17 +80,3 @@ fn read_config(bb_dir: &str) -> Config {
     config
 }
 
-fn find_explosions( bb_dir: &str ) {
-    let path = PathBuf::from(bb_dir);
-
-    fs::read_dir(path).unwrap()
-        .filter_map(Result::ok)
-        .filter(|p: &DirEntry| p.path().is_dir())
-        .filter(|p: &DirEntry| ! p.file_name().to_string_lossy().starts_with("_"))
-        .filter(|p: &DirEntry| {
-            let mut exp_path = PathBuf::from( p.path() );
-            exp_path.push("exp.toml");
-            exp_path.is_file()
-        })
-        .for_each(|p| println!("{:?}",p));
-}
