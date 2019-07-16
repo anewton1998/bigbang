@@ -29,16 +29,16 @@ pub struct Config {
     pub repeat: bool,
 }
 
-pub fn read_config(bb_dir: &str) -> Config {
-    let mut config_path = PathBuf::from(bb_dir);
+pub fn read_config(bb_dir: &PathBuf) -> Config {
+    let mut config_path = bb_dir.clone();
     config_path.push("bigbang.toml");
     let file_contents = fs::read_to_string(config_path).unwrap_or_else(|_err| {
-        eprintln!("Unable to read bigbang.toml file in {}", bb_dir);
+        eprintln!("Unable to read bigbang.toml file in {}", bb_dir.to_string_lossy());
         process::exit(1);
     });
 
     let config: Config = toml::from_str(&*file_contents).unwrap_or_else(|_err| {
-        eprintln!("bigbang.toml in {} cannot be parsed as TOML", bb_dir);
+        eprintln!("bigbang.toml in {} cannot be parsed as TOML", bb_dir.to_string_lossy());
         process::exit(1)
     });
 

@@ -20,10 +20,8 @@ use std::path::PathBuf;
 
 use serde::Deserialize;
 
-pub fn find_exploders( bb_dir: &str ) {
-    let path = PathBuf::from(bb_dir);
-
-    fs::read_dir(path).unwrap()
+pub fn find_exploders(bb_dir: &PathBuf) {
+    fs::read_dir(bb_dir).unwrap()
         .filter_map(Result::ok)
         .filter(|p: &DirEntry| p.path().is_dir())
         .filter(|p: &DirEntry| ! p.file_name().to_string_lossy().starts_with("_"))
