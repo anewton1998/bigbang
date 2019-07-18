@@ -73,7 +73,7 @@ fn main() {
     };
 
     match matches.subcommand_name() {
-        Some("new-directory") => println!("new-directory command"),
+        Some("new-directory") => new_directory(bb_dir),
         Some("new-exploder") => println!("new-exploder command"),
         Some("run") => run(bb_dir),
         _ => {
@@ -81,6 +81,10 @@ fn main() {
             process::exit(1);
         }
     }
+}
+
+fn new_directory(bb_dir: PathBuf) {
+    config::write_config_file(&bb_dir).unwrap();
 }
 
 fn run(bb_dir: PathBuf) {

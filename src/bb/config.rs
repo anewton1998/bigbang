@@ -30,8 +30,7 @@ pub struct Config {
 }
 
 pub fn read_config(bb_dir: &PathBuf) -> Config {
-    let mut config_path = bb_dir.clone();
-    config_path.push("bigbang.toml");
+    let config_path = config_path(bb_dir);
     let file_contents = fs::read_to_string(config_path).unwrap_or_else(|_err| {
         eprintln!("Unable to read bigbang.toml file in {}", bb_dir.to_string_lossy());
         process::exit(1);
@@ -43,6 +42,19 @@ pub fn read_config(bb_dir: &PathBuf) -> Config {
     });
 
     config
+}
+
+pub fn write_config_file(bb_dir: &PathBuf) -> std::io::Result<()> {
+    let config_path = config_path(bb_dir);
+    fs::write(config_path,CONFIG_EXAMPLE)?;
+    println!("Configuration file bigbang.toml written to {}", bb_dir.to_string_lossy());
+    Ok(())
+}
+
+fn config_path(bb_dir: &PathBuf) -> PathBuf {
+    let mut config_path = bb_dir.clone();
+    config_path.push("bigbang.toml");
+    config_path
 }
 
 #[cfg(test)]
