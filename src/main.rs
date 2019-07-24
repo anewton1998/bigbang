@@ -26,6 +26,8 @@ use clap::{App, Arg, SubCommand};
 use flexi_logger::Logger;
 use log::*;
 
+use elefren::prelude::Registration;
+
 mod bb;
 
 use bb::exp;
@@ -60,6 +62,15 @@ fn main() {
                         .required(true)
                         .takes_value(true)
                 )
+                .arg(
+                    Arg::with_name("instance url")
+                        .short("i")
+                        .long("instance")
+                        .value_name("INSTANCE URL")
+                        .help("Mastodon Instance")
+                        .required(true)
+                        .takes_value(true)
+                )
         )
         .subcommand(
             SubCommand::with_name("run")
@@ -72,12 +83,14 @@ fn main() {
         None => env::current_dir().unwrap(),
     };
 
-    match matches.subcommand_name() {
-        Some("new-directory") => new_directory(bb_dir),
-        Some("new-exploder") => println!("new-exploder command"),
-        Some("run") => run(bb_dir),
+    match matches.subcommand() {
+        ("new-directory", Some(sub_m)) => new_directory(bb_dir),
+        ("new-exploder", Some(sub_m)) => {
+            new_exploder(bb_dir, sub_m.value_of("instance url").unwrap());
+        },
+        ("run", Some(sub_m)) => run(bb_dir),
         _ => {
-            println!("Not a valid subcommand");
+            eprintln!("Not a valid subcommand");
             process::exit(1);
         }
     }
@@ -85,6 +98,18 @@ fn main() {
 
 fn new_directory(bb_dir: PathBuf) {
     config::write_config_file(&bb_dir).unwrap();
+}
+
+fn new_exploder(bb_dir: PathBuf, instance_url: &str) {
+    let registration = Registration::new(instance_url)
+        .client_name("bigbang")
+        .build();
+    let url = registration.unwrap().authorize_url().unwrap();
+    println!("\n\
+To register BigBank with your Mastodon account, open the URL below in a browser: ");
+    println!("\n{}\n", url );
+    print!("\
+Enter the authentication code to complete the registration: ");
 }
 
 fn run(bb_dir: PathBuf) {
