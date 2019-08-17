@@ -18,6 +18,7 @@ extern crate clap;
 extern crate serde;
 extern crate toml;
 
+use std::io::{stdin,stdout,Write};
 use std::path::PathBuf;
 use std::env;
 use std::process;
@@ -86,7 +87,11 @@ fn main() {
     match matches.subcommand() {
         ("new-directory", Some(sub_m)) => new_directory(bb_dir),
         ("new-exploder", Some(sub_m)) => {
-            new_exploder(bb_dir, sub_m.value_of("instance url").unwrap());
+            new_exploder(
+                bb_dir,
+                sub_m.value_of("instance url").unwrap(),
+                sub_m.value_of("name").unwrap()
+            );
         },
         ("run", Some(sub_m)) => run(bb_dir),
         _ => {
@@ -100,16 +105,23 @@ fn new_directory(bb_dir: PathBuf) {
     config::write_config_file(&bb_dir).unwrap();
 }
 
-fn new_exploder(bb_dir: PathBuf, instance_url: &str) {
+fn new_exploder(bb_dir: PathBuf, instance_url: &str, name: &str) {
     let registration = Registration::new(instance_url)
         .client_name("bigbang")
-        .build();
-    let url = registration.unwrap().authorize_url().unwrap();
+        .build()
+        .unwrap();
+    let url = registration.authorize_url().unwrap();
     println!("\n\
-To register BigBank with your Mastodon account, open the URL below in a browser: ");
+        To register BigBank with your Mastodon account, open the URL below in a browser: ");
     println!("\n{}\n", url );
+
     print!("\
-Enter the authentication code to complete the registration: ");
+        Enter the authentication code to complete the registration: ");
+    let _=stdout().flush();
+    let mut code = String::new();
+    stdin().read_line(&mut code).expect("No valid code given.");
+    let mastodon = registration.complete( code.trim() ).unwrap();
+    exp::write_exp_file(&bb_dir,name, &mastodon.data );
 }
 
 fn run(bb_dir: PathBuf) {
